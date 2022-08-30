@@ -1,10 +1,11 @@
 package com.self.education
 
-import com.self.education.config.LiquibaseConfiguration
-import org.springframework.context.annotation.AnnotationConfigApplicationContext
+import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.runApplication
 
-class Main
+@SpringBootApplication
+open class Main
 
 fun main(args: Array<String>) {
-    AnnotationConfigApplicationContext(LiquibaseConfiguration::class.java)
+    runApplication<Main>()
 }

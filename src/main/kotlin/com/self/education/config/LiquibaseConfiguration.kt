@@ -17,20 +17,24 @@ open class LiquibaseConfiguration(
     @Value("\${spring.liquibase.url}")
     private val uri: String,
     @Value("\${spring.liquibase.change-log}")
-    private val resources: Array<Resource>
+    private val resources: Array<Resource>,
+    @Value("\${spring.liquibase.enabled}")
+    private val enabled: Boolean
 ) : InitializingBean {
 
     @Throws(Exception::class)
     override fun afterPropertiesSet() {
-        val openDatabase = DatabaseFactory.getInstance().openDatabase(uri, null, null, null, null, null)
-        for (resource in resources) {
-            val filename: String = resource.getFilename()
-            val parentFolder: String = resource.getFile().getParentFile().getName()
-            Liquibase(
-                java.lang.String.format("%s%s%s", parentFolder, File.separator, filename),
-                ClassLoaderResourceAccessor(),
-                openDatabase
-            ).use { liquibase -> liquibase.update(Contexts()) }
+        if (enabled) {
+            val openDatabase = DatabaseFactory.getInstance().openDatabase(uri, null, null, null, null, null)
+            for (resource in resources) {
+                val filename: String = resource.getFilename()
+                val parentFolder: String = resource.getFile().getParentFile().getName()
+                Liquibase(
+                    java.lang.String.format("%s%s%s", parentFolder, File.separator, filename),
+                    ClassLoaderResourceAccessor(),
+                    openDatabase
+                ).use { liquibase -> liquibase.update(Contexts()) }
+            }
         }
     }
 }
