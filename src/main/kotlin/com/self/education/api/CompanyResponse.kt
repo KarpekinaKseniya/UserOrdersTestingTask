@@ -14,5 +14,5 @@ data class CompanyResponse(
     @JsonProperty("sector")
     val sector: String,
     @JsonProperty("url")
-    val url: String
+    val url: String? = null
 )

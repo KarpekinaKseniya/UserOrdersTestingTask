@@ -141,6 +141,10 @@
                                     bsonType: "string",
                                     description: "Payment card number"
                                 },
+                                order_country: {
+                                    bsonType: "string",
+                                    description: "Country, from which order is created"
+                                },
                                 order_ip: {
                                     bsonType: "string",
                                     description: "IP address of the user from whom the order was made"

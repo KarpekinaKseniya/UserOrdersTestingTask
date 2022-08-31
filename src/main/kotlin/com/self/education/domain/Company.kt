@@ -21,5 +21,5 @@ data class Company (
     @Field("sector")
     val sector: String,
     @Field("url")
-    val url: String
+    val url: String ?= null
 )
