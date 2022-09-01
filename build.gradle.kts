@@ -40,7 +40,7 @@ dependencies {
     testImplementation("org.mockito:mockito-core:$mockitoVersion")
     testImplementation("org.hamcrest:hamcrest-all:$hamcrestVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$jupiterVersion")
-    testImplementation("org.springframework.boot:spring-boot-test:$springBootVersion")
+    testImplementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion")
     testImplementation("org.springframework:spring-test:$springVersion")
     testImplementation("uk.co.datumedge:hamcrest-json:0.2")
 }

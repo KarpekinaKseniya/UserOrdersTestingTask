@@ -1,0 +1,24 @@
+[
+  {
+    "id": 21,
+    "transaction_id": "d86eb74d-b59b-4c21-bc02-68608c18ce9f",
+    "created_at": 1.474139904E9,
+    "user_id": 4,
+    "total": 1073.39,
+    "card_type": "maestro",
+    "card_number": "6762303363715056",
+    "order_country": "PH",
+    "order_ip": "233.84.21.1"
+  },
+  {
+    "id": 149,
+    "transaction_id": "085301d8-54e2-44b3-ac34-c53e70452457",
+    "created_at": 1.491898957E9,
+    "user_id": 20,
+    "total": 112.15,
+    "card_type": "maestro",
+    "card_number": "6762380055750377",
+    "order_country": "BF",
+    "order_ip": "60.136.221.10"
+  }
+]

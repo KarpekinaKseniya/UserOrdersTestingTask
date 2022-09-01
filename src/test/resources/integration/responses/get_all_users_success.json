@@ -1,0 +1,20 @@
+[
+  {
+    "id": 4,
+    "first_name": "Torrie",
+    "last_name": "Mossman",
+    "gender": "Female",
+    "birthday": 3.65721135E8,
+    "avatar": "https://robohash.org/eaqueadipiscidistinctio.jpg?size=100x100",
+    "company_id": 5
+  },
+  {
+    "id": 19,
+    "first_name": "Brigitte",
+    "last_name": "Rimes",
+    "gender": "Female",
+    "birthday": 6.04346704E8,
+    "avatar": "https://robohash.org/ametveritatisqui.jpg?size=100x100",
+    "company_id": 5
+  }
+]
