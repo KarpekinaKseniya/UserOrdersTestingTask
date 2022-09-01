@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+    <changeSet id="create-companies-collection" author="kkarpekina">
+        <ext:createCollection collectionName="companies">
+            <ext:options>
+                {
+                    validator: {
+                        $jsonSchema: {
+                            bsonType: "object",
+                            required: ["id", "title", "industry", "market_cap", "sector"],
+                            properties: {
+                                id: {
+                                    bsonType: "number",
+                                    description: "The unique identifier for a company",
+                                    uniqueItems: true
+                                },
+                                title: {
+                                    bsonType: "string",
+                                    description: "Title of company",
+                                    uniqueItems: true
+                                },
+                                industry: {
+                                    bsonType: "string",
+                                    description: "Branch of activity"
+                                },
+                                market_cap: {
+                                    bsonType: "string",
+                                    description: "Market capitalization"
+                                },
+                                sector: {
+                                    bsonType: "string",
+                                    description: "Company specialization"
+                                },
+                                url: {
+                                    bsonType: "string",
+                                    description: "Link to company website"
+                                }
+                            }
+                        }
+                    },
+                    validationAction: "warn",
+                    validationLevel: "strict"
+                }
+            </ext:options>
+        </ext:createCollection>
+        <rollback>
+            <ext:dropCollection collectionName="companies"/>
+        </rollback>
+    </changeSet>
+    <changeSet id="create-users-collection" author="kkarpekina">
+        <ext:createCollection collectionName="users">
+            <ext:options>
+                {
+                    validator: {
+                        $jsonSchema: {
+                            bsonType: "object",
+                            required: ["id", "first_name", "last_name", "gender"],
+                            properties: {
+                                id: {
+                                    bsonType: "number",
+                                    description: "The unique identifier for user",
+                                    uniqueItems: true
+                                },
+                                first_name: {
+                                    bsonType: "string",
+                                    description: "First name of the user"
+                                },
+                                last_name: {
+                                    bsonType: "string",
+                                    description: "Last name of the user"
+                                },
+                                gender: {
+                                    bsonType: "string",
+                                    description: "Gender, can be one of Male, Female"
+                                },
+                                birthday: {
+                                    bsonType: "double",
+                                    description: "User's birthday in unix timestamp format"
+                                },
+                                avatar: {
+                                    bsonType: "string",
+                                    description: "Link to image with user's avatar"
+                                },
+                                company_id: {
+                                    bsonType: "number",
+                                    description: "ID of the company the user represents"
+                                }
+                            }
+                        }
+                    },
+                    validationAction: "warn",
+                    validationLevel: "strict"
+                }
+            </ext:options>
+        </ext:createCollection>
+        <rollback>
+            <ext:dropCollection collectionName="users"/>
+        </rollback>
+    </changeSet>
+    <changeSet id="create-orders-collection" author="kkarpekina">
+        <ext:createCollection collectionName="orders">
+            <ext:options>
+                {
+                    validator: {
+                        $jsonSchema: {
+                            bsonType: "object",
+                            required: ["id", "transaction_id", "created_at", "user_id", "total", "card_type", "card_number", "order_country", "order_ip"],
+                            properties: {
+                                id: {
+                                    bsonType: "number",
+                                    description: "Record sequence number",
+                                    uniqueItems: true
+                                },
+                                transaction_id: {
+                                    bsonType: "string",
+                                    description: "The unique identifier for an orders",
+                                    uniqueItems: true
+                                },
+                                created_at: {
+                                    bsonType: "double",
+                                    description: "Timestamp of order's created in unix timestamp format"
+                                },
+                                user_id: {
+                                    bsonType: "number",
+                                    description: "ID of user"
+                                },
+                                total: {
+                                    bsonType: "double",
+                                    description: "Total order amount in base currency (USD)"
+                                },
+                                card_type: {
+                                    bsonType: "string",
+                                    description: "Payment card type"
+                                },
+                                card_number: {
+                                    bsonType: "string",
+                                    description: "Payment card number"
+                                },
+                                order_country: {
+                                    bsonType: "string",
+                                    description: "Country, from which order is created"
+                                },
+                                order_ip: {
+                                    bsonType: "string",
+                                    description: "IP address of the user from whom the order was made"
+                                }
+                            }
+                        }
+                    },
+                    validationAction: "warn",
+                    validationLevel: "strict"
+                }
+            </ext:options>
+        </ext:createCollection>
+        <rollback>
+            <ext:dropCollection collectionName="orders"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
