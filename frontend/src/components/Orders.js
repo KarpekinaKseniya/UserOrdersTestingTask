@@ -7,8 +7,9 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
-import {findAllOrders} from "../actions/BackendRequests";
+import {findAllOrders, findAllUsers} from "../actions/BackendRequests";
 import {TablePagination} from "@mui/material";
+import {convertAmount, convertCardNumber, convertFullName, convertToDate} from "../actions/ConvertActions";
 
 const StyledTableCell = styled(TableCell)(({theme}) => ({
     [`&.${tableCellClasses.head}`]: {
@@ -34,12 +35,28 @@ class Orders extends Component {
     state = {
         orders: [],
         rowsPerPage: 5,
-        page: 0
+        page: 0,
+        users: []
     }
 
     async componentDidMount() {
+        await this.getAllOrders()
+        await this.getAllUsers()
+    }
+
+    async getAllUsers() {
+        const body = await findAllUsers()
+        this.setState({users: body})
+    }
+
+    async getAllOrders() {
         const body = await findAllOrders()
         this.setState({orders: body})
+    }
+
+    findUserById(userId) {
+        const user = this.state.users.find(val => userId === val.id)
+        return convertFullName(user?.first_name, user?.last_name, user?.gender)
     }
 
     handleChangePage = (_event, newPage) => {
@@ -48,27 +65,6 @@ class Orders extends Component {
 
     handleChangeRowsPerPage = (event) => {
         this.setState({page: 0, rowsPerPage: parseInt(event.target.value, 10)})
-    }
-
-    convertToDate(timestamp) {
-        const date = new Date(timestamp * 1000)
-        const time = date.toLocaleTimeString()
-        const day = date.getDay()
-        const month = date.getMonth()
-        const year = date.getFullYear()
-        return day + '/' + month + '/' + year + ' ' + time
-    }
-
-    convertAmount(number) {
-        return (Math.round(number * 100) / 100).toFixed(2);
-    }
-
-    convertCardNumber(cardNumber) {
-        const firstNumberCount = 2
-        const lastNumberCount = 4
-        const cardNumberLen = cardNumber.length
-        const shieldedLen = cardNumberLen - firstNumberCount - lastNumberCount
-        return cardNumber.substring(0, firstNumberCount) + "*".repeat(shieldedLen) + cardNumber.substring(cardNumberLen - lastNumberCount)
     }
 
     render() {
@@ -94,12 +90,14 @@ class Orders extends Component {
                                     <StyledTableCell component="th" scope="row">
                                         {order.transaction_id}
                                     </StyledTableCell>
-                                    <StyledTableCell align="right">{order.user_id}</StyledTableCell>
-                                    <StyledTableCell
-                                        align="right">{this.convertToDate(order.created_at)}</StyledTableCell>
-                                    <StyledTableCell align="right">{this.convertAmount(order.total)}$</StyledTableCell>
                                     <StyledTableCell align="right">
-                                        {this.convertCardNumber(order.card_number)}
+                                        <a href="#">{this.findUserById(order.user_id)}</a>
+                                    </StyledTableCell>
+                                    <StyledTableCell
+                                        align="right">{convertToDate(order.created_at)}</StyledTableCell>
+                                    <StyledTableCell align="right">{convertAmount(order.total)}$</StyledTableCell>
+                                    <StyledTableCell align="right">
+                                        {convertCardNumber(order.card_number)}
                                     </StyledTableCell>
                                     <StyledTableCell align="right">{order.card_type}</StyledTableCell>
                                     <StyledTableCell
