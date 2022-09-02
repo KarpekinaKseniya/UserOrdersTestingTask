@@ -29,9 +29,6 @@ tasks.named<NpmTask>("npm_run_build") {
 
 val packageNpmApp by tasks.registering(Jar::class) {
     dependsOn("npm_run_build")
-    baseName = "npm-app"
-    extension = "jar"
-    destinationDir = file("${projectDir}/build_npm")
     from("build") {
         into("static")
     }

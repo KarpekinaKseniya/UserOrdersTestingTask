@@ -35,6 +35,7 @@ dependencies {
     implementation("org.mapstruct:mapstruct:$mapstructVersion")
     kapt("org.mapstruct:mapstruct-processor:$mapstructVersion")
     implementation("org.springdoc:springdoc-openapi-ui:$swaggerVersion")
+    kapt("org.springframework.boot:spring-boot-configuration-processor")
 
     runtimeOnly(project(":frontend"))
 
@@ -47,6 +48,7 @@ dependencies {
 }
 kapt {
     correctErrorTypes = true
+    keepJavacAnnotationProcessors = true
 }
 
 tasks.test {
