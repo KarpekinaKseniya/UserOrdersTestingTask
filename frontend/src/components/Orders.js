@@ -7,9 +7,10 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
-import {findAllOrders, findAllUsers} from "../actions/BackendRequests";
+import {findAllOrders} from "../actions/BackendRequests";
 import {TablePagination} from "@mui/material";
-import {convertAmount, convertCardNumber, convertFullName, convertToDate} from "../actions/ConvertActions";
+import {convertAmount, convertCardNumber, convertToDate} from "../actions/ConvertActions";
+import Users from "./Users";
 
 const StyledTableCell = styled(TableCell)(({theme}) => ({
     [`&.${tableCellClasses.head}`]: {
@@ -41,22 +42,11 @@ class Orders extends Component {
 
     async componentDidMount() {
         await this.getAllOrders()
-        await this.getAllUsers()
-    }
-
-    async getAllUsers() {
-        const body = await findAllUsers()
-        this.setState({users: body})
     }
 
     async getAllOrders() {
         const body = await findAllOrders()
         this.setState({orders: body})
-    }
-
-    findUserById(userId) {
-        const user = this.state.users.find(val => userId === val.id)
-        return convertFullName(user?.first_name, user?.last_name, user?.gender)
     }
 
     handleChangePage = (_event, newPage) => {
@@ -91,7 +81,7 @@ class Orders extends Component {
                                         {order.transaction_id}
                                     </StyledTableCell>
                                     <StyledTableCell align="right">
-                                        <a href="#">{this.findUserById(order.user_id)}</a>
+                                        <Users id={order.user_id}/>
                                     </StyledTableCell>
                                     <StyledTableCell
                                         align="right">{convertToDate(order.created_at)}</StyledTableCell>
