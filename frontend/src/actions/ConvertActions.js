@@ -8,7 +8,8 @@ export const convertToDate = (timestamp) => {
 }
 
 export const convertAmount = (number) => {
-    return (Math.round(number * 100) / 100).toFixed(2);
+    const result = (Math.round(number * 100) / 100).toFixed(2)
+    return !isNaN(result) ? result +'$' : result
 }
 
 export const convertCardNumber = (cardNumber) => {

@@ -6,10 +6,11 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import {findAllOrders, findAllUsers} from "../actions/BackendRequests";
-import {TablePagination, TableSortLabel} from "@mui/material";
+import {TableCell, TableFooter, TablePagination, TableSortLabel} from "@mui/material";
 import {convertAmount, convertCardNumber, convertToDate} from "../actions/ConvertActions";
 import Users from "./Users";
 import {StyledTableCell, StyledTableRow} from "../style/StyledTable"
+import {ordersAverageValue, ordersMedianValue, ordersTotal} from "../actions/OrdersStatisticActions";
 
 class Orders extends Component {
 
@@ -45,10 +46,25 @@ class Orders extends Component {
         this.setState({page: 0, rowsPerPage: parseInt(event.target.value, 10)})
     }
 
-    findFirstAndLastName(id) {
-        const user = this.state.users.find(val => id === val.id)
+    findUserById(users, id) {
+        const user = users.find(val => id === val.id)
         if (user !== undefined)
-            return user['first_name'] + ' ' + user['last_name']
+            return user
+    }
+
+    findOrdersByUserGender(orders, users, gender) {
+        return orders.filter(order => {
+            const user = this.findUserById(users, order.user_id)
+            if (user !== undefined) {
+                return user.gender === gender
+            }
+            return null
+        })
+    }
+
+    findFirstAndLastName(id) {
+        const user = this.findUserById(this.state.users, id)
+        return user['first_name'] + ' ' + user['last_name']
     }
 
     descendingComparator(a, b, orderBy) {
@@ -86,7 +102,8 @@ class Orders extends Component {
     };
 
     render() {
-        let {orders, rowsPerPage, page, direction, orderBy} = this.state
+        let {orders, rowsPerPage, page, direction, orderBy, users} = this.state
+        let ordersResult = orders.sort(this.getComparator(direction, orderBy)).slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
         return (
             <Paper sx={{width: '90%', mb: 2, ml: 11.5}}>
                 <TableContainer>
@@ -162,7 +179,7 @@ class Orders extends Component {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {orders.sort(this.getComparator(direction, orderBy)).slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((order) => (
+                            {ordersResult.map((order) => (
                                 <StyledTableRow key={"order_" + order.id}>
                                     <StyledTableCell component="th" scope="row">
                                         {order.transaction_id}
@@ -172,7 +189,7 @@ class Orders extends Component {
                                     </StyledTableCell>
                                     <StyledTableCell
                                         align="right">{convertToDate(order.created_at)}</StyledTableCell>
-                                    <StyledTableCell align="right">{convertAmount(order.total)}$</StyledTableCell>
+                                    <StyledTableCell align="right">{convertAmount(order.total)}</StyledTableCell>
                                     <StyledTableCell align="right">
                                         {convertCardNumber(order.card_number)}
                                     </StyledTableCell>
@@ -183,6 +200,28 @@ class Orders extends Component {
                                 </StyledTableRow>
                             ))}
                         </TableBody>
+                        <TableFooter>
+                            <TableRow>
+                                <TableCell>Orders Count</TableCell>
+                                <TableCell align="right">Orders Total</TableCell>
+                                <TableCell align="right">Median Value</TableCell>
+                                <TableCell align="right">Average Check</TableCell>
+                                <TableCell align="right">Average Check (Female)</TableCell>
+                                <TableCell align="right" colSpan="2">Average Check (Male)</TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell>{rowsPerPage}</TableCell>
+                                <TableCell align="right">{convertAmount(ordersTotal(ordersResult))}</TableCell>
+                                <TableCell align="right">{convertAmount(ordersMedianValue(ordersResult))}</TableCell>
+                                <TableCell align="right">{convertAmount(ordersAverageValue(ordersResult))}</TableCell>
+                                <TableCell align="right">
+                                    {convertAmount(ordersAverageValue(this.findOrdersByUserGender(ordersResult, users, 'Female')))}
+                                </TableCell>
+                                <TableCell align="right" colSpan="2">
+                                    {convertAmount(ordersAverageValue(this.findOrdersByUserGender(ordersResult, users, 'Male')))}
+                                </TableCell>
+                            </TableRow>
+                        </TableFooter>
                     </Table>
                 </TableContainer>
                 <TablePagination
