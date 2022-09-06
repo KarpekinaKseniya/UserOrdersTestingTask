@@ -1,52 +1,40 @@
 import React, {Component} from 'react';
-import {styled} from '@mui/material/styles';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
-import TableCell, {tableCellClasses} from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
-import {findAllOrders} from "../actions/BackendRequests";
-import {TablePagination} from "@mui/material";
+import {findAllOrders, findAllUsers} from "../actions/BackendRequests";
+import {TablePagination, TableSortLabel} from "@mui/material";
 import {convertAmount, convertCardNumber, convertToDate} from "../actions/ConvertActions";
 import Users from "./Users";
-
-const StyledTableCell = styled(TableCell)(({theme}) => ({
-    [`&.${tableCellClasses.head}`]: {
-        backgroundColor: theme.palette.primary.main,
-        color: theme.palette.common.white,
-    },
-    [`&.${tableCellClasses.body}`]: {
-        fontSize: 14,
-    },
-}));
-
-const StyledTableRow = styled(TableRow)(({theme}) => ({
-    '&:nth-of-type(odd)': {
-        backgroundColor: theme.palette.action.hover,
-    },
-    '&:last-child td, &:last-child th': {
-        border: 0,
-    },
-}));
+import {StyledTableCell, StyledTableRow} from "../style/StyledTable"
 
 class Orders extends Component {
 
     state = {
         orders: [],
-        rowsPerPage: 5,
+        rowsPerPage: 10,
         page: 0,
-        users: []
+        users: [],
+        orderBy: "",
+        direction: 'asc'
     }
 
     async componentDidMount() {
         await this.getAllOrders()
+        await this.getAllUsers()
     }
 
     async getAllOrders() {
         const body = await findAllOrders()
         this.setState({orders: body})
+    }
+
+    async getAllUsers() {
+        const body = await findAllUsers()
+        this.setState({users: body})
     }
 
     handleChangePage = (_event, newPage) => {
@@ -57,31 +45,130 @@ class Orders extends Component {
         this.setState({page: 0, rowsPerPage: parseInt(event.target.value, 10)})
     }
 
+    findFirstAndLastName(id) {
+        const user = this.state.users.find(val => id === val.id)
+        if (user !== undefined)
+            return user['first_name'] + ' ' + user['last_name']
+    }
+
+    descendingComparator(a, b, orderBy) {
+        let first = b[orderBy]
+        let second = a[orderBy]
+        if (orderBy === "order_country") {
+            first += " " + b['order_ip']
+            second += " " + a['order_ip']
+        } else if (orderBy === "user_id") {
+            first = this.findFirstAndLastName(b["user_id"])
+            second = this.findFirstAndLastName(a["user_id"])
+        }
+        if (first < second) {
+            return -1;
+        }
+        if (first > second) {
+            return 1;
+        }
+        return 0;
+    }
+
+    getComparator(direction, orderBy) {
+        return direction === 'desc'
+            ? (a, b) => this.descendingComparator(a, b, orderBy)
+            : (a, b) => -this.descendingComparator(a, b, orderBy)
+    }
+
+    handleRequestSort = (_event, property) => {
+        const isAsc = this.state.orderBy === property && this.state.direction === 'asc'
+        this.setState({direction: (isAsc ? 'desc' : 'asc'), orderBy: property})
+    };
+
+    createSortHandler = (property) => (event) => {
+        this.handleRequestSort(event, property)
+    };
+
     render() {
-        let {orders, rowsPerPage, page} = this.state
+        let {orders, rowsPerPage, page, direction, orderBy} = this.state
         return (
             <Paper sx={{width: '90%', mb: 2, ml: 11.5}}>
                 <TableContainer>
                     <Table sx={{minWidth: 700}} aria-label="customized table">
                         <TableHead>
                             <TableRow>
-                                <StyledTableCell>Transaction ID</StyledTableCell>
-                                <StyledTableCell align="right">User Info</StyledTableCell>
-                                <StyledTableCell align="right">Order Date</StyledTableCell>
-                                <StyledTableCell align="right">Order Amount</StyledTableCell>
+                                <StyledTableCell
+                                    key="transaction_id"
+                                    sortDirection={orderBy === "transaction_id" ? direction : false}>
+                                    <TableSortLabel
+                                        active={orderBy === "transaction_id"}
+                                        direction={orderBy === "transaction_id" ? direction : 'asc'}
+                                        onClick={this.createSortHandler("transaction_id")}>
+                                        Transaction ID
+                                    </TableSortLabel>
+                                </StyledTableCell>
+                                <StyledTableCell
+                                    key="user_id"
+                                    align="right"
+                                    sortDirection={orderBy === "user_id" ? direction : false}>
+                                    <TableSortLabel
+                                        active={orderBy === "user_id"}
+                                        direction={orderBy === "user_id" ? direction : 'asc'}
+                                        onClick={this.createSortHandler("user_id")}>
+                                        User Info
+                                    </TableSortLabel>
+                                </StyledTableCell>
+                                <StyledTableCell
+                                    key="created_at"
+                                    align="right"
+                                    sortDirection={orderBy === "created_at" ? direction : false}>
+                                    <TableSortLabel
+                                        active={orderBy === "created_at"}
+                                        direction={orderBy === "created_at" ? direction : 'asc'}
+                                        onClick={this.createSortHandler("created_at")}>
+                                        Order Date
+                                    </TableSortLabel>
+                                </StyledTableCell>
+                                <StyledTableCell
+                                    key="total"
+                                    align="right"
+                                    sortDirection={orderBy === "total" ? direction : false}>
+                                    <TableSortLabel
+                                        active={orderBy === "total"}
+                                        direction={orderBy === "total" ? direction : 'asc'}
+                                        onClick={this.createSortHandler("total")}>
+                                        Order Amount
+                                    </TableSortLabel>
+                                </StyledTableCell>
                                 <StyledTableCell align="right">Card Number</StyledTableCell>
-                                <StyledTableCell align="right">Card Type</StyledTableCell>
-                                <StyledTableCell align="right">Location</StyledTableCell>
+                                <StyledTableCell
+                                    key="card_type"
+                                    align="right"
+                                    sortDirection={orderBy === "card_type" ? direction : false}>
+                                    <TableSortLabel
+                                        active={orderBy === "card_type"}
+                                        direction={orderBy === "card_type" ? direction : 'asc'}
+                                        onClick={this.createSortHandler("card_type")}>
+                                        Card Type
+                                    </TableSortLabel>
+                                </StyledTableCell>
+                                <StyledTableCell
+                                    key="order_country"
+                                    align="right"
+                                    sortDirection={orderBy === "order_country" ? direction : false}>
+                                    <TableSortLabel
+                                        active={orderBy === "order_country"}
+                                        direction={orderBy === "order_country" ? direction : 'asc'}
+                                        onClick={this.createSortHandler("order_country")}>
+                                        Location
+                                    </TableSortLabel>
+                                </StyledTableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {orders.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((order) => (
+                            {orders.sort(this.getComparator(direction, orderBy)).slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((order) => (
                                 <StyledTableRow key={"order_" + order.id}>
                                     <StyledTableCell component="th" scope="row">
                                         {order.transaction_id}
                                     </StyledTableCell>
                                     <StyledTableCell align="right">
-                                        <Users id={order.user_id}/>
+                                        <Users id={order.user_id} users={this.state.users}/>
                                     </StyledTableCell>
                                     <StyledTableCell
                                         align="right">{convertToDate(order.created_at)}</StyledTableCell>

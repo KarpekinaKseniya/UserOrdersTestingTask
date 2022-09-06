@@ -1,28 +1,12 @@
 import React, {Component} from "react";
 import {convertFullName, convertToDate} from "../actions/ConvertActions";
-import {findAllUsers} from "../actions/BackendRequests";
 import {CircularProgress, Link, Slide} from "@mui/material";
 import Companies from "./Companies";
 
 class Users extends Component {
 
     state = {
-        users: [],
         open: false
-    }
-
-    componentDidMount() {
-        this.getAllUsers()
-    }
-
-    async getAllUsers() {
-        const body = await findAllUsers()
-        this.setState({users: body})
-    }
-
-    findUserById(userId) {
-        const user = this.state.users.find(val => userId === val.id)
-        return convertFullName(user.first_name, user.last_name, user.gender)
     }
 
     visibility() {
@@ -31,7 +15,7 @@ class Users extends Component {
 
     render() {
         const id = this.props.id
-        const user = this.state.users.find(val => id === val.id)
+        const user = this.props.users.find(val => id === val.id)
         if (user === undefined) {
             return <CircularProgress color="inherit"/>
         } else
@@ -47,7 +31,6 @@ class Users extends Component {
                             <Companies id={user.company_id}/>
                         </div>
                     </Slide>
-
                 </>
             );
     }

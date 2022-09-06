@@ -10,8 +10,8 @@ class Companies extends Component {
         anchorEl: null
     }
 
-    componentDidMount() {
-        this.getAllCompanies()
+    async componentDidMount() {
+        await this.getAllCompanies()
     }
 
     async getAllCompanies() {
