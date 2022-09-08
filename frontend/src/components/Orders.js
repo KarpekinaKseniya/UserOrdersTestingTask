@@ -5,12 +5,13 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
+import SearchIcon from '@mui/icons-material/Search';
 import {findAllOrders, findAllUsers} from "../actions/BackendRequests";
-import {TableCell, TableFooter, TablePagination, TableSortLabel} from "@mui/material";
+import {IconButton, InputBase, TableCell, TableFooter, TablePagination, TableSortLabel} from "@mui/material";
 import {convertAmount, convertCardNumber, convertToDate} from "../actions/ConvertActions";
-import Users from "./Users";
 import {StyledTableCell, StyledTableRow} from "../style/StyledTable"
 import {ordersAverageValue, ordersMedianValue, ordersTotal} from "../actions/OrdersStatisticActions";
+import Users from "./Users";
 
 class Orders extends Component {
 
@@ -20,7 +21,9 @@ class Orders extends Component {
         page: 0,
         users: [],
         orderBy: "",
-        direction: 'asc'
+        direction: 'asc',
+        ordersFound: [],
+        isFounded: false
     }
 
     async componentDidMount() {
@@ -101,14 +104,52 @@ class Orders extends Component {
         this.handleRequestSort(event, property)
     };
 
+    containsIgnoreCase(string, contain) {
+        const refer = (string + '').toLowerCase()
+        const search = (contain + '').toLowerCase()
+        return refer.includes(search)
+    }
+
+    containsFirstOrLastName(userId, value) {
+        const user = this.findUserById(this.state.users, userId)
+        return this.containsIgnoreCase(user.first_name, value) || this.containsIgnoreCase(user.last_name, value)
+    }
+
+    handleChange(event) {
+        let value = event.target.value;
+        const result = this.state.orders.filter(order =>
+            this.containsIgnoreCase(order.transaction_id, value) ||
+            this.containsIgnoreCase(order.total, value) ||
+            this.containsIgnoreCase(order.card_type, value) ||
+            this.containsIgnoreCase(order.order_country + ' (' + order.order_ip + ')', value) ||
+            this.containsFirstOrLastName(order.user_id, value)
+        )
+        this.setState({ordersFound: result, isFounded: true})
+    }
+
     render() {
-        let {orders, rowsPerPage, page, direction, orderBy, users} = this.state
-        let ordersResult = orders.sort(this.getComparator(direction, orderBy)).slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+        let {orders, rowsPerPage, page, direction, orderBy, users, ordersFound, isFounded} = this.state
+        let output = isFounded ? ordersFound : orders
+        let ordersResult = output.sort(this.getComparator(direction, orderBy)).slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
         return (
             <Paper sx={{width: '90%', mb: 2, ml: 11.5}}>
                 <TableContainer>
                     <Table sx={{minWidth: 700}} aria-label="customized table">
                         <TableHead>
+                            <TableRow>
+                                <TableCell colSpan="6">
+                                    <InputBase
+                                        fullWidth
+                                        placeholder="Search Orders"
+                                        onChange={this.handleChange.bind(this)}
+                                        inputProps={{'aria-label': 'search orders'}}/>
+                                </TableCell>
+                                <TableCell align="right">
+                                    <IconButton type="button" sx={{p: '10px'}} aria-label="search" disabled>
+                                        <SearchIcon/>
+                                    </IconButton>
+                                </TableCell>
+                            </TableRow>
                             <TableRow>
                                 <StyledTableCell
                                     key="transaction_id"
@@ -179,26 +220,30 @@ class Orders extends Component {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {ordersResult.map((order) => (
-                                <StyledTableRow key={"order_" + order.id}>
-                                    <StyledTableCell component="th" scope="row">
-                                        {order.transaction_id}
-                                    </StyledTableCell>
-                                    <StyledTableCell align="right">
-                                        <Users id={order.user_id} users={this.state.users}/>
-                                    </StyledTableCell>
-                                    <StyledTableCell
-                                        align="right">{convertToDate(order.created_at)}</StyledTableCell>
-                                    <StyledTableCell align="right">{convertAmount(order.total)}</StyledTableCell>
-                                    <StyledTableCell align="right">
-                                        {convertCardNumber(order.card_number)}
-                                    </StyledTableCell>
-                                    <StyledTableCell align="right">{order.card_type}</StyledTableCell>
-                                    <StyledTableCell
-                                        align="right">{order.order_country} ({order.order_ip})
-                                    </StyledTableCell>
+                            {output.length === 0 ?
+                                <StyledTableRow>
+                                    <StyledTableCell align="center" colSpan="7">Nothing Found</StyledTableCell>
                                 </StyledTableRow>
-                            ))}
+                                : ordersResult.map((order) => (
+                                    <StyledTableRow key={"order_" + order.id}>
+                                        <StyledTableCell component="th" scope="row">
+                                            {order.transaction_id}
+                                        </StyledTableCell>
+                                        <StyledTableCell align="right">
+                                            <Users id={order.user_id} users={this.state.users}/>
+                                        </StyledTableCell>
+                                        <StyledTableCell
+                                            align="right">{convertToDate(order.created_at)}</StyledTableCell>
+                                        <StyledTableCell align="right">{convertAmount(order.total)}</StyledTableCell>
+                                        <StyledTableCell align="right">
+                                            {convertCardNumber(order.card_number)}
+                                        </StyledTableCell>
+                                        <StyledTableCell align="right">{order.card_type}</StyledTableCell>
+                                        <StyledTableCell
+                                            align="right">{order.order_country} ({order.order_ip})
+                                        </StyledTableCell>
+                                    </StyledTableRow>
+                                ))}
                         </TableBody>
                         <TableFooter>
                             <TableRow>
@@ -225,9 +270,9 @@ class Orders extends Component {
                     </Table>
                 </TableContainer>
                 <TablePagination
-                    rowsPerPageOptions={[5, 10, 25, 50, {label: 'All', value: orders.length}]}
+                    rowsPerPageOptions={[5, 10, 25, 50, {label: 'All', value: output.length}]}
                     component="div"
-                    count={orders.length}
+                    count={output.length}
                     rowsPerPage={rowsPerPage}
                     page={page}
                     onPageChange={this.handleChangePage}
