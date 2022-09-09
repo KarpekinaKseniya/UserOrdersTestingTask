@@ -7,11 +7,21 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import SearchIcon from '@mui/icons-material/Search';
 import {findAllOrders, findAllUsers} from "../actions/BackendRequests";
-import {IconButton, InputBase, TableCell, TableFooter, TablePagination, TableSortLabel} from "@mui/material";
+import {
+    IconButton,
+    InputBase,
+    MenuItem,
+    Select,
+    TableCell,
+    TableFooter,
+    TablePagination,
+    TableSortLabel
+} from "@mui/material";
 import {convertAmount, convertCardNumber, convertToDate} from "../actions/ConvertActions";
 import {StyledTableCell, StyledTableRow} from "../style/StyledTable"
 import {ordersAverageValue, ordersMedianValue, ordersTotal} from "../actions/OrdersStatisticActions";
 import Users from "./Users";
+import {countNewValue, CURRENCY, getAllCurrency} from "../actions/CurrencyActions";
 
 class Orders extends Component {
 
@@ -23,12 +33,16 @@ class Orders extends Component {
         orderBy: "",
         direction: 'asc',
         ordersFound: [],
-        isFounded: false
+        isFounded: false,
+        currency: undefined,
+        rate: 'USD',
+        search: ''
     }
 
     async componentDidMount() {
         await this.getAllOrders()
         await this.getAllUsers()
+        await this.findCurrency()
     }
 
     async getAllOrders() {
@@ -39,6 +53,11 @@ class Orders extends Component {
     async getAllUsers() {
         const body = await findAllUsers()
         this.setState({users: body})
+    }
+
+    async findCurrency() {
+        const body = await getAllCurrency()
+        this.setState({currency: body})
     }
 
     handleChangePage = (_event, newPage) => {
@@ -124,11 +143,17 @@ class Orders extends Component {
             this.containsIgnoreCase(order.order_country + ' (' + order.order_ip + ')', value) ||
             this.containsFirstOrLastName(order.user_id, value)
         )
-        this.setState({ordersFound: result, isFounded: true})
+        this.setState({ordersFound: result, isFounded: true, search: value})
+    }
+
+    changeCurrency(event) {
+        const rateTo = event.target.value
+        this.state.orders.forEach(order => order.total = countNewValue(this.state.currency, rateTo, this.state.rate, order.total))
+        this.setState({rate: rateTo, search: '', ordersFound: this.state.orders})
     }
 
     render() {
-        let {orders, rowsPerPage, page, direction, orderBy, users, ordersFound, isFounded} = this.state
+        let {orders, rowsPerPage, page, direction, orderBy, users, ordersFound, isFounded, rate} = this.state
         let output = isFounded ? ordersFound : orders
         let ordersResult = output.sort(this.getComparator(direction, orderBy)).slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
         return (
@@ -137,10 +162,25 @@ class Orders extends Component {
                     <Table sx={{minWidth: 700}} aria-label="customized table">
                         <TableHead>
                             <TableRow>
-                                <TableCell colSpan="6">
+                                <TableCell>
+                                    <Select
+                                        sx={{m: 1, width: 200}}
+                                        id="select-currency"
+                                        value={rate}
+                                        label="Choose currency"
+                                        onChange={this.changeCurrency.bind(this)}>
+                                        {CURRENCY.map((cur) => (
+                                            <MenuItem value={cur.code} key={cur.code}>
+                                                {cur.code} {cur.label}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </TableCell>
+                                <TableCell colSpan="5">
                                     <InputBase
                                         fullWidth
-                                        placeholder="Search Orders"
+                                        value={this.state.search}
+                                        placeholder="Search Orders by Transaction ID|User(First and Last Name)|Amount|Card Type|Location"
                                         onChange={this.handleChange.bind(this)}
                                         inputProps={{'aria-label': 'search orders'}}/>
                                 </TableCell>
@@ -234,7 +274,8 @@ class Orders extends Component {
                                         </StyledTableCell>
                                         <StyledTableCell
                                             align="right">{convertToDate(order.created_at)}</StyledTableCell>
-                                        <StyledTableCell align="right">{convertAmount(order.total)}</StyledTableCell>
+                                        <StyledTableCell
+                                            align="right">{convertAmount(order.total, rate)}</StyledTableCell>
                                         <StyledTableCell align="right">
                                             {convertCardNumber(order.card_number)}
                                         </StyledTableCell>
@@ -256,14 +297,17 @@ class Orders extends Component {
                             </TableRow>
                             <TableRow>
                                 <TableCell>{rowsPerPage}</TableCell>
-                                <TableCell align="right">{convertAmount(ordersTotal(ordersResult))}</TableCell>
-                                <TableCell align="right">{convertAmount(ordersMedianValue(ordersResult))}</TableCell>
-                                <TableCell align="right">{convertAmount(ordersAverageValue(ordersResult))}</TableCell>
+                                <TableCell
+                                    align="right">{convertAmount(ordersTotal(ordersResult), rate)}</TableCell>
+                                <TableCell
+                                    align="right">{convertAmount(ordersMedianValue(ordersResult), rate)}</TableCell>
+                                <TableCell
+                                    align="right">{convertAmount(ordersAverageValue(ordersResult), rate)}</TableCell>
                                 <TableCell align="right">
-                                    {convertAmount(ordersAverageValue(this.findOrdersByUserGender(ordersResult, users, 'Female')))}
+                                    {convertAmount(ordersAverageValue(this.findOrdersByUserGender(ordersResult, users, 'Female')), rate)}
                                 </TableCell>
                                 <TableCell align="right" colSpan="2">
-                                    {convertAmount(ordersAverageValue(this.findOrdersByUserGender(ordersResult, users, 'Male')))}
+                                    {convertAmount(ordersAverageValue(this.findOrdersByUserGender(ordersResult, users, 'Male')), rate)}
                                 </TableCell>
                             </TableRow>
                         </TableFooter>

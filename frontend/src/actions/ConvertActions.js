@@ -1,3 +1,5 @@
+import {CURRENCY} from "./CurrencyActions";
+
 export const convertToDate = (timestamp) => {
     const date = new Date(timestamp * 1000)
     const time = date.toLocaleTimeString()
@@ -7,9 +9,13 @@ export const convertToDate = (timestamp) => {
     return day + '/' + month + '/' + year + ' ' + time
 }
 
-export const convertAmount = (number) => {
-    const result = (Math.round(number * 100) / 100).toFixed(2)
-    return !isNaN(result) ? result +'$' : result
+export const convertAmount = (number, rate) => {
+    let result = (Math.round(number * 100) / 100).toFixed(2)
+    let label = '$'
+    if (rate !== undefined) {
+        label = CURRENCY.find(cur => cur.code === rate).label
+    }
+    return !isNaN(result) ? result + label : result
 }
 
 export const convertCardNumber = (cardNumber) => {
