@@ -26,7 +26,7 @@ class Users extends Component {
                     </Link>
                     <Slide direction="right" in={this.state.open} mountOnEnter unmountOnExit>
                         <div className="user-details">
-                            <p>Birthday: {convertToDate(user.birthday).split(' ')[0]}</p>
+                            <p>Birthday: {user.birthday !== null ? convertToDate(user.birthday).split(' ')[0] : NaN}</p>
                             <p><img src={user.avatar} width="100px" alt={"Avatar " + user.id}/></p>
                             <Companies id={user.company_id}/>
                         </div>

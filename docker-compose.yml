@@ -1,0 +1,32 @@
+version: '3'
+services:
+  backend:
+    build:
+      context: backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongo
+    environment:
+      DB_NAME: docker_test
+      DB_URI: mongodb://mongo:27017/docker_test
+  frontend:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    ports:
+      - "4200:4200"
+    depends_on:
+      - backend
+    links:
+      - backend
+    environment:
+      WAIT_HOSTS: backend:8081
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_DATABASE=docker_test
+    ports:
+      - 27017
